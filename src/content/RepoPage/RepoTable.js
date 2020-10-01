@@ -5,29 +5,29 @@ import {
   TableContainer,
   Table,
   TableHead,
-  TableRow,
   TableExpandHeader,
   TableHeader,
+  TableRow,
   TableBody,
   TableExpandRow,
   TableExpandedRow,
   TableCell,
 } from 'carbon-components-react';
 
-const RepoTable = ({ rows, headers }) => {
+const RepoTable = ({ headers, rows }) => {
   return (
     <DataTable
-      rows={rows}
       headers={headers}
+      rows={rows}
       render={({
-        rows,
         headers,
-        getRowProps,
-        getHeaderProps,
+        rows,
         getTableProps,
+        getHeaderProps,
+        getRowProps,
       }) => (
         <TableContainer
-          title="Carbon Repositories"
+          title="Carbon repositories."
           description="A collection of public Carbon repositories.">
           <Table {...getTableProps()}>
             <TableHead>
@@ -50,7 +50,7 @@ const RepoTable = ({ rows, headers }) => {
                     ))}
                   </TableExpandRow>
                   <TableExpandedRow colSpan={headers.length + 1}>
-                    <p>Row description</p>
+                    <p>description</p>
                   </TableExpandedRow>
                 </React.Fragment>
               ))}
