@@ -10,17 +10,25 @@ import {
 } from 'carbon-components-react/lib/components/UIShell';
 import Notification20 from '@carbon/icons-react/lib/notification/20';
 import UserAvatar20 from '@carbon/icons-react/lib/user--avatar/20';
+// @ts-ignore
 import AppSwitcher20 from '@carbon/icons-react/lib/app-switcher/20';
 import { Link } from 'react-router-dom';
 
 const TutorialHeader = () => (
   <Header aria-label="Carbon Tutorial">
     <SkipToContent />
-    <HeaderName element={Link} to="/" prefix="IBM">
+    <HeaderName
+      element={Link}
+      // @ts-ignore
+      to="/"
+      prefix="IBM">
       Carbon Tutorial
     </HeaderName>
     <HeaderNavigation aria-label="Carbon Tutorial">
-      <HeaderMenuItem element={Link} to="/repos">
+      <HeaderMenuItem
+        element={Link}
+        //@ts-ignore
+        to="/repos">
         Repositories
       </HeaderMenuItem>
     </HeaderNavigation>
