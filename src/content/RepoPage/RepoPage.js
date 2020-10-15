@@ -1,5 +1,67 @@
-import React from 'react';
+// @ts-nocheck
+import React, { useState } from 'react';
 import RepoTable from './RepoTable';
+import { gql } from 'apollo-boost';
+import { Query } from 'react-apollo';
+import { Link, DataTableSkeleton, Pagination } from 'carbon-components-react';
+
+const REPO_QUERY = gql`
+  query REPO_QUERY {
+    organization(login: "carbon-design-system") {
+      repositories(first: 75, orderBy: { field: UPDATED_AT, direction: DESC }) {
+        totalCount
+        nodes {
+          url
+          homepageUrl
+          issues(filterBy: { states: OPEN }) {
+            totalCount
+          }
+          stargazers {
+            totalCount
+          }
+          releases(first: 1) {
+            totalCount
+            nodes {
+              name
+            }
+          }
+          name
+          updatedAt
+          createdAt
+          description
+          id
+        }
+      }
+    }
+  }
+`;
+
+const LinkList = ({ url, homepageUrl }) => {
+  return (
+    <ul style={{ display: 'flex' }}>
+      <li>
+        <Link href={url}>Github</Link>
+      </li>
+      {homepageUrl && (
+        <li>
+          <span>&nbsp;|&nbsp;</span>
+          <Link href={homepageUrl}>Homepage</Link>
+        </li>
+      )}
+    </ul>
+  );
+};
+
+const getRowItems = rows =>
+  rows.map(row => ({
+    ...row,
+    key: row.id,
+    stars: row.stargazers.totalCount,
+    issueCount: row.issues.totalCount,
+    createdAt: new Date(row.createdAt).toLocaleDateString,
+    updatedAt: new Date(row.updatedAt).toLocaleDateString,
+    links: <LinkList url={row.url} homepageUrl={row.homepageUrl} />,
+  }));
 
 const headers = [
   {
@@ -28,42 +90,88 @@ const headers = [
   },
 ];
 
-const rows = [
-  {
-    id: '1',
-    name: 'Repo 1',
-    createdAt: 'Date',
-    updatedAt: 'Date',
-    issueCount: '123',
-    stars: '456',
-    links: 'Links',
-  },
-  {
-    id: '2',
-    name: 'Repo 2',
-    createdAt: 'Date',
-    updatedAt: 'Date',
-    issueCount: '123',
-    stars: '456',
-    links: 'Links',
-  },
-  {
-    id: '3',
-    name: 'Repo 3',
-    createdAt: 'Date',
-    updatedAt: 'Date',
-    issueCount: '123',
-    stars: '456',
-    links: 'Links',
-  },
-];
+// const rows = [
+//   {
+//     id: '1',
+//     name: 'Repo 1',
+//     createdAt: 'Date',
+//     updatedAt: 'Date',
+//     issueCount: '123',
+//     stars: '456',
+//     links: 'Links',
+//   },
+//   {
+//     id: '2',
+//     name: 'Repo 2',
+//     createdAt: 'Date',
+//     updatedAt: 'Date',
+//     issueCount: '123',
+//     stars: '456',
+//     links: 'Links',
+//   },
+//   {
+//     id: '3',
+//     name: 'Repo 3',
+//     createdAt: 'Date',
+//     updatedAt: 'Date',
+//     issueCount: '123',
+//     stars: '456',
+//     links: 'Links',
+//   },
+// ];
 
 const RepoPage = () => {
+  const [TotalNumRows, setTotalNumRows] = useState(0);
+  const [FirstRowIndex, setFirstRowIndex] = useState(0);
+  const [CurrentPageSize, setCurrentPageSize] = useState(10);
   return (
     <div className="bx--grid bx--grid--full-width bx--grid--no-gutter repo-page">
       <div className="bx--row repo-page__r1">
         <div className="bx--col-lg-16">
-          <RepoTable headers={headers} rows={rows} />
+          <Query query={REPO_QUERY}>
+            {({ loading, error, data }) => {
+              if (loading) {
+                return (
+                  <DataTableSkeleton
+                    columnCount={headers.length + 1}
+                    rowCount={10}
+                    headers={headers}
+                  />
+                );
+              }
+
+              if (error) return `Error!. ${error.message}`;
+
+              const { repositories } = data.organization;
+              setTotalNumRows(repositories.totalCount);
+              const rows = getRowItems(repositories.nodes);
+              return (
+                <>
+                  <RepoTable
+                    headers={headers}
+                    rows={rows.slice(
+                      FirstRowIndex,
+                      FirstRowIndex + CurrentPageSize
+                    )}
+                  />
+                  <Pagination
+                    totalItems={TotalNumRows}
+                    backwardText="Previous Page"
+                    forwardText="Next Page"
+                    pageSize={CurrentPageSize}
+                    pageSizes={[5, 10, 15, 25]}
+                    itemsPerPageText="Items per page"
+                    onChange={({ page, pageSize }) => {
+                      if (pageSize !== CurrentPageSize) {
+                        setCurrentPageSize(pageSize);
+                      }
+                      setFirstRowIndex(pageSize * (page - 1));
+                    }}
+                  />
+                </>
+              );
+            }}
+          </Query>
         </div>
       </div>
     </div>
